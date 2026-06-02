@@ -1,0 +1,62 @@
+name: DevSecOps Pipeline
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  security-code-scan:
+    name: Code Security Scan (SAST)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Bandit (Python Security Scanner)
+        run: pip install bandit
+
+      - name: Run Bandit Scan on Django App
+        run: bandit -r ./signbridge -lll
+
+      - name: Run Bandit Scan on Microservice
+        run: bandit -r ./microservice-sign2text -lll
+
+  container-security-scan:
+    name: Docker Image Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Build Django Image (Local)
+        run: docker build -t signbridge-app:test ./signbridge
+
+      - name: Build Microservice Image (Local)
+        run: docker build -t signbridge-microservice:test ./microservice-sign2text
+
+      - name: Run Trivy Vulnerability Scanner (Django)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'signbridge-app:test'
+          format: 'table'
+          exit-code: '0'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Run Trivy Vulnerability Scanner (Microservice)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'signbridge-microservice:test'
+          format: 'table'
+          exit-code: '0'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'

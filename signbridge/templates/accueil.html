@@ -4,134 +4,375 @@
 {% block title %}Accueil - SignBridge{% endblock %}
 
 {% block content %}
-<!-- Hero Section -->
-<section id="home" class="hero-section">
-    <div class="container-narrow">
-        <div class="row align-items-center">
-            <div class="col-lg-6">
-                <h1 class="hero-title animate__animated animate__fadeInUp">
-                    Parce que le silence ne devrait jamais signifier l'isolement
-                </h1>
-                <p class="hero-subtitle animate__animated animate__fadeInUp animate__delay-1s">
-                    SignBridge transforme la langue des signes en texte et voix en temps réel.
-                    Grâce à l'IA, nous transformons les gestes en compréhension et rapprochons
-                    les personnes, au-delà des mots et du son.
-                </p>
-                <div class="d-flex flex-wrap gap-3 animate__animated animate__fadeInUp animate__delay-2s">
-                    {% if user.is_authenticated %}
-                    <a href="{% url 'traduction:signe_vers_texte' %}" class="btn btn-primary btn-lg" style="padding: 12px 28px">
-                        <i class="fas fa-sign-language me-2"></i>
-                        Essayer la traduction
-                    </a>
-                    <a href="{% url 'tutoriel:catalogue' %}" class="btn btn-outline btn-lg" style="padding: 12px 28px">
-                        <i class="fas fa-graduation-cap me-2"></i>
-                        Apprendre 
-                    </a>
-                    {% else %}
-                    <a href="{% url 'compte:inscription' %}" class="btn btn-primary btn-lg" style="padding: 12px 28px">
-                        <i class="fas fa-rocket me-2"></i>
-                        Essayer gratuitement
-                    </a>
-                    <a href="{% url 'compte:login' %}" class="btn btn-outline btn-lg" style="padding: 12px 28px">
-                        <i class="fas fa-sign-in-alt me-2"></i>
-                        Se connecter
-                    </a>
-                    {% endif %}
-                </div>
+<style>
+/* Custom Premium Styles for Landing Page */
+.hero-premium {
+    position: relative;
+    padding: 160px 0 100px;
+    background: #0f172a;
+    overflow: hidden;
+    color: white;
+    text-align: center;
+}
 
-                <div class="hero-stats">
-                    <div class="stat-item">
-                        <span class="stat-value">1K+</span>
-                        <span class="stat-label">Utilisateurs actifs</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-value">95%</span>
-                        <span class="stat-label">Précision</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-value">500+</span>
-                        <span class="stat-label">Signes reconnus</span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-6">
-                <div class="text-center">
-                    <img src="{% static 'images/lsf-hero.png' %}" alt="Traduction LSF" 
-                         class="img-fluid animate__animated animate__fadeInRight"
-                         style="border-radius: 20px; box-shadow: var(--shadow-lg); max-width: 90%">
-                </div>
-            </div>
+.hero-glow {
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.4) 0%, rgba(14, 165, 233, 0) 70%);
+    top: -200px;
+    left: 50%;
+    transform: translateX(-50%);
+    filter: blur(60px);
+    z-index: 0;
+    animation: pulseGlow 8s ease-in-out infinite alternate;
+}
+
+@keyframes pulseGlow {
+    0% { transform: translateX(-50%) scale(1); opacity: 0.8; }
+    100% { transform: translateX(-50%) scale(1.2); opacity: 1; }
+}
+
+.hero-premium-title {
+    font-size: 5rem;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -2px;
+    margin-bottom: 24px;
+    position: relative;
+    z-index: 2;
+    color: #ffffff; /* FORCE WHITE COLOR FOR VISIBILITY */
+}
+
+.text-gradient-premium {
+    background: linear-gradient(135deg, #a5b4fc 0%, #38bdf8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.hero-premium-subtitle {
+    font-size: 1.25rem;
+    color: #cbd5e1; /* MADE LIGHTER FOR BETTER CONTRAST */
+    max-width: 650px;
+    margin: 0 auto 40px;
+    position: relative;
+    z-index: 2;
+    line-height: 1.6;
+}
+
+/* Glassmorphic Interactive Bar */
+.glass-bar {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 12px;
+    border-radius: 100px;
+    max-width: 700px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 2;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.glass-bar input {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 1.1rem;
+    width: 100%;
+    padding: 10px 20px;
+    outline: none;
+}
+
+.glass-bar input::placeholder {
+    color: rgba(255, 255, 255, 0.6); /* LIGHTER PLACEHOLDER */
+}
+
+.glass-btn {
+    background: linear-gradient(135deg, #4f46e5 0%, #0ea5e9 100%);
+    color: white;
+    border: none;
+    padding: 12px 32px;
+    border-radius: 100px;
+    font-weight: 600;
+    font-size: 1.1rem;
+    white-space: nowrap;
+    transition: all 0.3s ease;
+}
+
+.glass-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 25px rgba(79, 70, 229, 0.4);
+}
+
+/* Bento Box Grid */
+.bento-section {
+    padding: 120px 0;
+    background: #f8fafc;
+}
+
+.bento-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-auto-rows: 280px;
+    gap: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+.bento-card {
+    background: white;
+    border-radius: 32px;
+    padding: 40px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(226, 232, 240, 0.6);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+}
+
+.bento-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+}
+
+.bento-large { grid-column: span 2; grid-row: span 2; }
+.bento-wide { grid-column: span 2; grid-row: span 1; }
+.bento-square { grid-column: span 1; grid-row: span 1; }
+
+.bento-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    margin-bottom: 24px;
+    box-shadow: 0 8px 16px -4px rgba(0,0,0,0.1);
+    flex-shrink: 0;
+}
+
+.bento-title {
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin-bottom: 16px;
+    letter-spacing: -0.5px;
+    font-family: 'Outfit', sans-serif;
+    color: #0f172a;
+}
+
+.bento-desc {
+    color: #64748b;
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
+
+/* Custom Card Backgrounds & Effects */
+
+/* Card 1: Traduction Live */
+.bento-card-1 {
+    background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
+}
+.bento-card-1::after {
+    content: '';
+    position: absolute;
+    bottom: -100px;
+    right: -100px;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(14, 165, 233, 0.1) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+.bento-card-1 .bento-icon {
+    background: linear-gradient(135deg, #0ea5e9, #3b82f6);
+    color: white;
+}
+.bento-card-1 .bento-content {
+    position: relative;
+    z-index: 2;
+}
+
+/* Card 2: Avatar 3D */
+.bento-card-2 {
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+    border: 1px solid rgba(255,255,255,0.1);
+}
+.bento-card-2 .bento-title { color: white; }
+.bento-card-2 .bento-desc { color: #94a3b8; }
+.bento-card-2 .bento-icon {
+    background: linear-gradient(135deg, #8b5cf6, #6366f1);
+    color: white;
+}
+
+/* Card 3: Vitesse (Yellow/Orange) */
+.bento-card-3 {
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    border-color: #fde68a;
+}
+.bento-card-3 .bento-icon {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+}
+
+/* Card 4: Multi-région (Pink/Purple) */
+.bento-card-4 {
+    background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%);
+    border-color: #fbcfe8;
+}
+.bento-card-4 .bento-icon {
+    background: linear-gradient(135deg, #ec4899, #db2777);
+    color: white;
+}
+
+/* Card 5: Apprentissage (Green) */
+.bento-card-5 {
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    border-color: #bbf7d0;
+}
+.bento-card-5 .bento-icon {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: white;
+}
+
+.bento-card-3 .bento-title, .bento-card-4 .bento-title { font-size: 1.5rem; }
+
+@media (max-width: 992px) {
+    .bento-grid { grid-template-columns: repeat(2, 1fr); grid-auto-rows: minmax(250px, auto); }
+    .hero-premium-title { font-size: 3.5rem; }
+}
+
+@media (max-width: 768px) {
+    .bento-grid { grid-template-columns: 1fr; }
+    .bento-large, .bento-wide, .bento-square { grid-column: span 1; }
+    .hero-premium-title { font-size: 2.8rem; }
+    .glass-bar { flex-direction: column; border-radius: 24px; padding: 20px; }
+    .glass-btn { width: 100%; }
+}
+</style>
+
+<!-- Premium Hero Section -->
+<section id="home" class="hero-premium">
+    <div class="hero-glow"></div>
+    <div class="container position-relative">
+        <h1 class="hero-premium-title animate__animated animate__fadeInUp">
+            Au-delà des mots, <br>
+            <span class="text-gradient-premium">Connectez les mondes.</span>
+        </h1>
+        
+        <p class="hero-premium-subtitle animate__animated animate__fadeInUp animate__delay-1s">
+            Une plateforme révolutionnaire qui traduit instantanément la langue des signes en texte, et le texte en animations fluides grâce à une IA neuronale de pointe.
+        </p>
+
+        <div class="glass-bar animate__animated animate__fadeInUp animate__delay-2s mt-5">
+            <i class="fas fa-magic text-white text-opacity-50 ms-3 fs-4"></i>
+            <input type="text" placeholder="Entrez une phrase à traduire en signes..." readonly onfocus="window.location.href='{% url 'avatar:texte_vers_signe' %}'">
+            <a href="{% url 'avatar:texte_vers_signe' %}" class="glass-btn text-decoration-none">
+                Générer un avatar
+            </a>
+        </div>
+        
+        <div class="mt-4 pt-3 d-flex justify-content-center gap-4 animate__animated animate__fadeInUp animate__delay-3s">
+            <a href="{% url 'traduction:signe_vers_texte' %}" class="text-white text-opacity-75 text-decoration-none hover-white d-flex align-items-center gap-2">
+                <i class="fas fa-video"></i> Essayer la webcam en direct
+            </a>
         </div>
     </div>
 </section>
 
-<!-- Features Section -->
-<section id="features" class="features-section section-padding">
-    <div class="container-narrow">
-        <h2 class="section-title animate__animated animate__fadeInUp">
-            Fonctionnalités principales
-        </h2>
-        <p class="section-subtitle animate__animated animate__fadeInUp animate__delay-1s">
-            SignBridge combine technologie de pointe et design intuitif pour créer la plateforme
-            la plus complète de traduction et d'apprentissage de la LSF.
-        </p>
+<!-- Bento Box Features -->
+<section id="features" class="bento-section">
+    <div class="container text-center mb-5 pb-3">
+        <h2 class="section-title fw-bold" style="font-size: 3rem; letter-spacing: -1px; color: #0f172a;">Une technologie qui change la vie</h2>
+        <p class="text-muted fs-5 mx-auto" style="max-width: 600px;">Pensé pour être rapide, invisible et précis. SignBridge s'efface pour laisser place à la communication pure.</p>
+    </div>
 
-        <div class="feature-grid">
-            <!-- Feature 1 -->
-            <div class="feature-card animate__animated animate__fadeInUp">
-                <div class="feature-icon">
-                    <i class="fas fa-camera"></i>
+    <div class="bento-grid">
+        <!-- Carte Large (Traduction Live) -->
+        <div class="bento-card bento-large bento-card-1 animate__animated animate__fadeInUp">
+            <div class="bento-content">
+                <div class="d-flex align-items-start justify-content-between mb-4">
+                    <div class="bento-icon">
+                        <i class="fas fa-video"></i>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2 fw-semibold border border-primary border-opacity-25">Temps réel</span>
+                        <span class="badge bg-dark bg-opacity-10 text-dark rounded-pill px-3 py-2 fw-semibold">Vision IA</span>
+                    </div>
                 </div>
-                <h3>Traduction en temps réel</h3>
-                <p>
-                    Transformez vos signes en texte et voix instantanément grâce à notre technologie IA.
-                    Utilisez votre webcam ou téléchargez une vidéo.
-                </p>
-                <div class="feature-highlights">
-                    <span class="badge bg-primary">Webcam live</span>
-                    <span class="badge bg-secondary">Upload vidéo</span>
-                </div>
-                <a href="{% url 'traduction:signe_vers_texte' %}" class="btn btn-outline btn-sm mt-3">
-                    Essayer maintenant <i class="fas fa-arrow-right ms-1"></i>
-                </a>
+                <h3 class="bento-title">Traduction Live par Vision</h3>
+                <p class="bento-desc mb-4">Activez votre webcam et signez. Notre réseau de neurones analyse vos mouvements de main à plus de 30 FPS et génère instantanément la traduction textuelle de vos gestes.</p>
             </div>
-
-            <!-- Feature 2 -->
-            <div class="feature-card animate__animated animate__fadeInUp animate__delay-1s">
-                <div class="feature-icon">
-                    <i class="fas fa-robot"></i>
+            <!-- Graphic element instead of dead space -->
+            <div class="mt-auto position-relative rounded-4 overflow-hidden" style="height: 200px; background: linear-gradient(135deg, rgba(14, 165, 233, 0.1), rgba(59, 130, 246, 0.2)); border: 1px solid rgba(59, 130, 246, 0.2);">
+                <div class="position-absolute top-50 start-50 translate-middle text-primary opacity-50">
+                    <i class="fas fa-wave-square" style="font-size: 6rem;"></i>
                 </div>
-                <h3>Avatar signeur</h3>
-                <p>
-                    Générez des animations d'avatar qui signent vos phrases.
-                    Parfait pour l'apprentissage et la communication visuelle.
-                </p>
-                <div class="feature-highlights">
-                    <span class="badge bg-primary">Animations 2D/3D</span>
-                    <span class="badge bg-secondary">Personnalisation</span>
+                <div class="position-absolute bottom-0 w-100 p-3" style="background: linear-gradient(to top, rgba(255,255,255,0.9), transparent);">
+                    <div class="d-flex gap-2 justify-content-center">
+                        <span class="bg-white rounded-pill shadow-sm px-3 py-1 text-primary fw-bold text-sm">Détection active</span>
+                        <span class="bg-white rounded-pill shadow-sm px-3 py-1 text-success fw-bold text-sm">Précision 98%</span>
+                    </div>
                 </div>
-                <a href="{% url 'avatar:texte_vers_signe' %}" class="btn btn-outline btn-sm mt-3">
-                    Essayer maintenant <i class="fas fa-arrow-right ms-1"></i>
-                </a>
             </div>
+        </div>
 
-            <!-- Feature 3 -->
-            <div class="feature-card animate__animated animate__fadeInUp animate__delay-2s">
-                <div class="feature-icon">
-                    <i class="fas fa-graduation-cap"></i>
+        <!-- Carte Wide (Avatar 3D) -->
+        <div class="bento-card bento-wide bento-card-2 animate__animated animate__fadeInUp animate__delay-1s">
+            <div class="bento-icon">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div class="mt-2">
+                <h3 class="bento-title">Avatar Génératif 3D</h3>
+                <p class="bento-desc mb-0">Tapez un texte, l'IA génère une animation fluide d'un avatar signant votre message avec une syntaxe parfaite.</p>
+            </div>
+        </div>
+
+        <!-- Carte Carrée (Vitesse) -->
+        <div class="bento-card bento-square bento-card-3 animate__animated animate__fadeInUp animate__delay-2s">
+            <div class="bento-icon">
+                <i class="fas fa-bolt"></i>
+            </div>
+            <div class="mt-auto">
+                <h3 class="bento-title">Vitesse éclair</h3>
+                <p class="bento-desc mb-0">Latence ultra-faible (&lt;200ms) pour une discussion naturelle.</p>
+            </div>
+        </div>
+
+        <!-- Carte Carrée (Multi-langues) -->
+        <div class="bento-card bento-square bento-card-4 animate__animated animate__fadeInUp animate__delay-3s">
+            <div class="bento-icon">
+                <i class="fas fa-globe"></i>
+            </div>
+            <div class="mt-auto">
+                <h3 class="bento-title">Multi-régions</h3>
+                <p class="bento-desc mb-0">Support du LSA (Suisse) et LSM (Maroc) en natif.</p>
+            </div>
+        </div>
+        
+        <!-- Carte Wide (Apprentissage) -->
+        <div class="bento-card bento-wide bento-card-5 animate__animated animate__fadeInUp animate__delay-4s">
+            <div class="d-flex align-items-center justify-content-between h-100">
+                <div class="pe-4">
+                    <div class="bento-icon mb-4">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <h3 class="bento-title">Tutoriels Interactifs</h3>
+                    <p class="bento-desc mb-0">Découvrez nos cours pas à pas et nos quiz pour apprendre les signes à votre rythme et tester vos compétences.</p>
                 </div>
-                <h3>Tutoriels interactifs</h3>
-                <p>
-                    Apprenez la LSF avec des cours structurés, des vidéos démonstratives
-                    et des quiz pour tester vos connaissances.
-                </p>
-                <div class="feature-highlights">
-                    <span class="badge bg-primary">Cours par niveaux</span>
-                    <span class="badge bg-secondary">Quiz évaluatifs</span>
+                <div class="d-none d-md-flex align-items-center justify-content-center">
+                    <a href="{% url 'tutoriel:catalogue' %}" class="btn bg-white rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width: 70px; height: 70px; border: 2px solid #22c55e; color: #16a34a; transition: all 0.3s ease;" onmouseover="this.style.background='#22c55e'; this.style.color='white';" onmouseout="this.style.background='white'; this.style.color='#16a34a';">
+                        <i class="fas fa-arrow-right fs-4"></i>
+                    </a>
                 </div>
-                <a href="{% url 'tutoriel:catalogue' %}" class="btn btn-outline btn-sm mt-3">
-                    Commencer à apprendre <i class="fas fa-arrow-right ms-1"></i>
-                </a>
             </div>
         </div>
     </div>

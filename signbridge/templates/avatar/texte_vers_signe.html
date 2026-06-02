@@ -4,48 +4,55 @@
 {% block title %}Texte vers Signes - SignBridge{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row">
-        <div class="col-lg-8 mx-auto">
+<div class="container-fluid px-4 py-5" style="max-width: 1400px;">
+    <!-- Hero Header pour la page -->
+    <div class="row mb-5">
+        <div class="col-12 text-center">
+            <h1 class="display-5 fw-bold mb-3" style="color: var(--primary-dark);">Générateur d'Avatar Signeur</h1>
+            <p class="lead text-muted mx-auto" style="max-width: 600px;">Transformez n'importe quel texte en une animation fluide en langue des signes générée par notre intelligence artificielle.</p>
+        </div>
+    </div>
 
-            <!-- Formulaire de saisie -->
-            <div class="card shadow-lg mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">Entrez votre texte</h5>
-                </div>
-                <div class="card-body">
+    <div class="row g-5">
+        <!-- Colonne Gauche : Formulaire -->
+        <div class="col-lg-5">
+            <div class="card shadow-md h-100" style="border-top: 5px solid var(--primary);">
+                <div class="card-body p-4 p-md-5">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="bg-primary-light rounded-circle p-3 me-3">
+                            <i class="fas fa-keyboard fs-3 text-primary"></i>
+                        </div>
+                        <h3 class="mb-0">Nouveau rendu</h3>
+                    </div>
+                    
                     <form id="formTraduction">
                         {% csrf_token %}
                         
                         <!-- Zone de texte -->
-                        <div class="mb-3">
-                            <label for="texte" class="form-label">Texte à traduire</label>
+                        <div class="mb-4">
+                            <label for="texte" class="form-label fw-bold text-dark">Que voulez-vous dire ?</label>
                             <textarea 
-                                class="form-control" 
+                                class="form-control bg-light" 
                                 id="texte" 
                                 name="texte" 
-                                rows="4" 
-                                placeholder="Entrez votre texte ici..."
+                                rows="5" 
+                                placeholder="Tapez votre texte ici... ex: Bonjour"
+                                style="font-size: 1.1rem; border-radius: 12px; resize: none;"
                                 required>Comment tu t appelles</textarea>
-                            <small class="text-muted">
-                                 Phrase de test : "Comment tu t appelles" ou "Quel age as tu"
-                            </small>
                         </div>
 
                         <!-- Sélection des langues -->
-                        
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="langue_parlee" class="form-label">Langue parlée</label>
-                                <select class="form-select" id="langue_parlee" name="langue_parlee">
-                                    <option value="de">Allemand</option>
-                                    <option value="fr" selected>Français</option>
+                        <div class="row g-3 mb-4">
+                            <div class="col-12">
+                                <label for="langue_parlee" class="form-label fw-bold text-dark">Langue d'entrée</label>
+                                <select class="form-select bg-light" id="langue_parlee" name="langue_parlee">
+                                    <option value="de">🇩🇪 Allemand</option>
+                                    <option value="fr" selected>🇫🇷 Français</option>
                                 </select>
-                                <small class="text-muted">🇫🇷 Français maintenant supporté !</small>
                             </div>
-                            <div class="col-md-6">
-                                <label for="langue_signee" class="form-label">Langue des signes</label>
-                                <select class="form-select" id="langue_signee" name="langue_signee">
+                            <div class="col-12">
+                                <label for="langue_signee" class="form-label fw-bold text-dark">Langue des signes cible</label>
+                                <select class="form-select bg-light" id="langue_signee" name="langue_signee">
                                     <option value="sgg">🇨🇭 LSA (Suisse-Allemand)</option>
                                     <option value="mar" selected>🇲🇦 LSM (Marocain)</option>
                                 </select>
@@ -53,95 +60,111 @@
                         </div>
 
                         <!-- Boutons d'action -->
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary btn-lg" id="btnGenerer">
-                                <span id="btnText"> Générer</span>
-                                <span id="btnLoader" class="d-none">
-                                    <span class="spinner-border spinner-border-sm me-2"></span>
-                                    Génération en cours...
-                                </span>
-                            </button>
-                        </div>
+                        <button type="submit" class="btn btn-primary w-100 py-3 d-flex align-items-center justify-content-center" id="btnGenerer" style="border-radius: 12px; font-size: 1.1rem;">
+                            <i class="fas fa-magic me-2" id="btnIcon"></i>
+                            <span id="btnText">Générer l'animation</span>
+                            <span id="btnLoader" class="d-none">
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                                Génération en cours...
+                            </span>
+                        </button>
                     </form>
                 </div>
             </div>
+        </div>
 
-            <!-- Zone de résultat -->
-            <div id="resultatZone" class="d-none">
-                <div class="card shadow-lg">
-                    <div class="card-header bg-success text-white">
-                        <h5 class="mb-0">✅ Résultat</h5>
-                    </div>
-                    <div class="card-body">
-                        <div id="resultatContent"></div>
+        <!-- Colonne Droite : Résultat & Historique -->
+        <div class="col-lg-7">
+            
+            <!-- Zone de Résultat en direct -->
+            <div id="resultatZone" class="d-none mb-4">
+                <div class="card shadow-lg border-0" style="background: linear-gradient(145deg, #ffffff, #f8fafc);">
+                    <div class="card-body p-4 p-md-5">
+                        <div class="d-flex align-items-center mb-4">
+                            <div class="bg-success rounded-circle p-2 me-3" style="background-color: #dcfce7 !important; color: #166534;">
+                                <i class="fas fa-check-circle fs-4"></i>
+                            </div>
+                            <h3 class="mb-0 text-dark">Résultat de la génération</h3>
+                        </div>
+                        <div id="resultatContent" class="w-100"></div>
                     </div>
                 </div>
             </div>
 
             <!-- Messages d'erreur -->
-            <div id="erreurZone" class="d-none mt-3">
-                <div class="alert alert-danger" role="alert">
-                    <h5 class="alert-heading">❌ Erreur</h5>
-                    <p id="erreurMessage"></p>
+            <div id="erreurZone" class="d-none mb-4">
+                <div class="alert alert-danger d-flex align-items-center p-4" style="border-radius: 16px; border-left: 5px solid #ef4444;">
+                    <i class="fas fa-exclamation-triangle fs-3 me-3 text-danger"></i>
+                    <div>
+                        <h5 class="alert-heading fw-bold mb-1">Échec de la génération</h5>
+                        <p id="erreurMessage" class="mb-0"></p>
+                    </div>
                 </div>
             </div>
 
             <!-- Historique récent -->
-            {% if historique %}
-            <div class="card shadow mt-4">
-                <div class="card-header bg-info text-white">
-                    <h5 class="mb-0"> Historique récent</h5>
+            <div class="card shadow-sm border-0 bg-white">
+                <div class="card-header bg-white border-bottom-0 pt-4 pb-0 px-4 px-md-5">
+                    <h4 class="mb-0 fw-bold d-flex align-items-center text-dark">
+                        <i class="fas fa-history me-2 text-secondary"></i>
+                        Historique récent
+                    </h4>
                 </div>
-                <div class="card-body">
-                    <div class="list-group">
+                <div class="card-body p-4 p-md-5">
+                    {% if historique %}
+                    <div class="d-flex flex-column gap-3">
                         {% for trad in historique %}
-                        <div class="list-group-item">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div class="flex-grow-1">
-                                    <h6 class="mb-1">{{ trad.texte_original|truncatewords:10 }}</h6>
-                                    <small class="text-muted">
-                                        {{ trad.date_creation|date:"d/m/Y H:i" }} - 
-                                        {% if trad.statut == 'termine' %}
-                                            <span class="badge bg-success">Terminé</span>
-                                        {% elif trad.statut == 'en_traitement' %}
-                                            <span class="badge bg-warning">En traitement</span>
-                                        {% else %}
-                                            <span class="badge bg-danger">Erreur</span>
-                                        {% endif %}
-                                    </small>
-                                    
-                                    {% if trad.video_generee %}
-                                    <div class="mt-2">
-                                        <video controls style="max-width: 300px; border-radius: 5px;">
-                                            <source src="{{ trad.video_generee.url }}" type="video/mp4">
-                                        </video>
-                                    </div>
+                        <div class="historique-item d-flex flex-column flex-md-row justify-content-between align-items-md-center p-4 border rounded-4 bg-light hover-shadow transition-all">
+                            <div class="flex-grow-1 mb-3 mb-md-0 pe-md-4">
+                                <h5 class="fw-bold text-dark mb-2">"{{ trad.texte_original }}"</h5>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="text-muted small"><i class="far fa-clock me-1"></i>{{ trad.date_creation|date:"d/m/Y H:i" }}</span>
+                                    <span class="text-muted small">•</span>
+                                    {% if trad.statut == 'termine' %}
+                                        <span class="badge rounded-pill bg-success px-3 py-2" style="background-color: #dcfce7 !important; color: #166534 !important;">Terminé</span>
+                                    {% elif trad.statut == 'en_traitement' %}
+                                        <span class="badge rounded-pill bg-warning px-3 py-2" style="background-color: #fef08a !important; color: #854d0e !important;">En traitement</span>
+                                    {% else %}
+                                        <span class="badge rounded-pill bg-danger px-3 py-2" style="background-color: #fee2e2 !important; color: #991b1b !important;">Erreur</span>
                                     {% endif %}
                                 </div>
                                 
+                                {% if trad.video_generee %}
+                                <div class="mt-3 video-container rounded-3 overflow-hidden shadow-sm" style="max-width: 320px;">
+                                    <video controls class="w-100 d-block" preload="none" poster="{% static 'images/video-placeholder.png' %}">
+                                        <source src="{{ trad.video_generee.url }}" type="video/mp4">
+                                    </video>
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="d-flex flex-row flex-md-column gap-2 mt-3 mt-md-0">
                                 {% if trad.fichier_pose %}
-                                <div class="d-flex flex-column gap-1">
                                     {% if trad.video_generee %}
-                                    <a href="{{ trad.video_generee.url }}" 
-                                       class="btn btn-sm btn-outline-success"
-                                       download>
-                                         Vidéo
+                                    <a href="{{ trad.video_generee.url }}" class="btn btn-outline-primary rounded-pill px-4" download>
+                                        <i class="fas fa-download me-1"></i> MP4
                                     </a>
                                     {% else %}
-                                    <button onclick="genererVideo({{ trad.id }})" 
-                                            class="btn btn-sm btn-outline-warning">
-                                        🔄 Vidéo
+                                    <button onclick="genererVideo({{ trad.id }})" class="btn btn-secondary rounded-pill px-4 text-white">
+                                        <i class="fas fa-sync-alt me-1"></i> Réessayer
                                     </button>
                                     {% endif %}
-                                </div>
                                 {% endif %}
                             </div>
                         </div>
                         {% endfor %}
                     </div>
+                    {% else %}
+                    <div class="text-center py-5 text-muted">
+                        <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                            <i class="fas fa-ghost fs-1 text-secondary opacity-50"></i>
+                        </div>
+                        <h5>Aucun historique pour le moment</h5>
+                        <p>Vos générations apparaîtront ici.</p>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
-            {% endif %}
         </div>
     </div>
 </div>

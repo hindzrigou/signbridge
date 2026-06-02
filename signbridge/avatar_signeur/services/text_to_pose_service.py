@@ -278,10 +278,18 @@ class TextToPoseService:
             logger.info(f"Langue pipeline: {pipeline_langue}")
             logger.info(f"Fichier de sortie: {pose_path}")
             
+            import unicodedata
+            
+            # Nettoyer le texte (enlever les accents pour le lexique / fingerspelling)
+            texte_clean = ''.join(c for c in unicodedata.normalize('NFD', texte)
+                                  if unicodedata.category(c) != 'Mn')
+            
+            logger.info(f"Texte nettoyé: '{texte_clean}'")
+            
             # Construire la commande
             cmd = [
                 'text_to_gloss_to_pose',
-                '--text', texte,
+                '--text', texte_clean,
                 '--glosser', 'simple',
                 '--lexicon', lexicon_path,
                 '--spoken-language', langue_parlee,
@@ -320,7 +328,16 @@ class TextToPoseService:
                     'file_size': file_size
                 }
             else:
-                error_msg = f'Erreur lors de la génération: {result.stderr or "Fichier non créé"}'
+                # Extraire une erreur plus compréhensible
+                error_msg = result.stderr
+                if "No poses found for" in error_msg:
+                    import re
+                    match = re.search(r"No poses found for ([^\s\\]+)", error_msg)
+                    mot_introuvable = match.group(1) if match else "certains mots"
+                    error_msg = f"Désolé, le mot '{mot_introuvable}' n'est pas (encore) dans le dictionnaire de l'avatar et ne peut pas être épelé."
+                else:
+                    error_msg = f"Erreur lors de la génération: {error_msg or 'Fichier non créé'}"
+                
                 logger.error(f"❌ {error_msg}")
                 
                 return {
@@ -522,31 +539,18 @@ class TextToPoseService:
             # Créer le visualiseur
             visualizer = PoseVisualizer(pose)
             
-            # Paramètres vidéo
-            fps = int(pose.body.fps)
-            width = 500
-            height = 500
+            logger.info(f"Génération de {len(pose.body.data)} frames...")
             
-            # Créer le writer vidéo
-            fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-            out = cv2.VideoWriter(video_path, fourcc, fps, (width, height))
+            # Paramètres pour forcer la compatibilité web (H.264, yuv420p)
+            custom_ffmpeg = {
+                "-c:v": "libx264",
+                "-pix_fmt": "yuv420p",
+                "-vf": "scale=trunc(iw/2)*2:trunc(ih/2)*2",
+                "-movflags": "+faststart"
+            }
             
-            logger.info(f"Génération de {len(pose.body.data)} frames à {fps} FPS...")
-            
-            # Générer chaque frame
-            for frame_idx in range(len(pose.body.data)):
-                # Dessiner la frame
-                img = visualizer.draw_frame(frame_idx, width, height)
-                
-                # Convertir en BGR pour OpenCV
-                if img is not None:
-                    img_bgr = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
-                    out.write(img_bgr)
-                
-                if frame_idx % 10 == 0:
-                    logger.info(f"Frame {frame_idx}/{len(pose.body.data)}")
-            
-            out.release()
+            # Générer et sauvegarder la vidéo directement via pose-format
+            visualizer.save_video(video_path, visualizer.draw(), custom_ffmpeg=custom_ffmpeg)
             
             if os.path.exists(video_path):
                 file_size = os.path.getsize(video_path)

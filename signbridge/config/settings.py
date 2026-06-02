@@ -25,7 +25,8 @@ SECRET_KEY = 'django-insecure-u(+u8q5%joc2vt@snb9p_0i1i&mpq=-*@m99)s0nkpwalckhz=
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+import os
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
 
 
 # Application definition
@@ -82,11 +83,11 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'lsf_database',           # Nom de votre base de données
-        'USER': 'lsf_user',                    # Votre utilisateur MySQL
-        'PASSWORD': 'root1234!',                    # Votre mot de passe MySQL
-        'HOST': 'localhost',               # Ou l'adresse de votre serveur
-        'PORT': '3306',                    # Port MySQL par défaut
+        'NAME': os.environ.get('DB_NAME', 'lsf_database'),           # Nom de votre base de données
+        'USER': os.environ.get('DB_USER', 'lsf_user'),                    # Votre utilisateur MySQL
+        'PASSWORD': os.environ.get('DB_PASSWORD', 'root1234!'),                    # Votre mot de passe MySQL
+        'HOST': os.environ.get('DB_HOST', 'localhost'),               # Ou l'adresse de votre serveur
+        'PORT': os.environ.get('DB_PORT', '3306'),                    # Port MySQL par défaut
         'OPTIONS': {
             'charset': 'utf8mb4',          # Pour supporter les émojis
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",

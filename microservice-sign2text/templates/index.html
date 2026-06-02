@@ -8,225 +8,297 @@
     <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 
 <style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700&display=swap');
+
+    :root {
+        --primary: #4f46e5;
+        --primary-light: #e0e7ff;
+        --dark: #0f172a;
+        --surface: #ffffff;
+        --bg: #f1f5f9;
+        --gray: #64748b;
+        --gray-light: #e2e8f0;
+        --radius: 20px;
+        --shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
     }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background: linear-gradient(135deg, #b0fc94 0%, #dac8ec 100%);
+        font-family: 'Inter', sans-serif;
+        background: transparent;
         min-height: 100vh;
-        padding: 20px;
+        padding: 15px;
+        color: var(--dark);
     }
 
-    .container {
+    header { display: none; }
+
+    /* Layout Principal */
+    .dashboard-container {
+        display: flex;
+        gap: 24px;
+        height: calc(100vh - 30px);
         max-width: 1400px;
-        margin: auto;
-        background: white;
-        border-radius: 20px;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        margin: 0 auto;
+    }
+
+    /* Colonne Vidéo (Gauche) */
+    .video-section {
+        flex: 7;
+        background: var(--surface);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        border: 1px solid var(--gray-light);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .video-header {
+        padding: 16px 24px;
+        border-bottom: 1px solid var(--gray-light);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #fafafa;
+    }
+
+    .video-title {
+        font-family: 'Outfit', sans-serif;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--dark);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .status-badge {
+        font-size: 0.8rem;
+        font-weight: 600;
+        padding: 6px 12px;
+        border-radius: 100px;
+        background: #dcfce7;
+        color: #166534;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .status-badge.error {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .video-wrapper {
+        flex: 1;
+        background: #000;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         overflow: hidden;
     }
 
-    header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 15px;
-        text-align: center;
+    #video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
     }
 
-    .content {
-        padding: 20px;
-    }
-
-    /* ====== TOP : SIGNE + STATUS (PLUS PETIT) ====== */
-    .prediction-section {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-        margin-bottom: 15px;
-    }
-
-    .prediction-box {
-        background: linear-gradient(135deg, #82db9b 0%, #5ac0ef 100%);
-        color: white;
-        padding: 10px;
-        border-radius: 12px;
-        text-align: center;
-    }
-
-    .prediction-box h2 {
-        font-size: 1rem;
-        margin-bottom: 4px;
-    }
-
-    #predicted-text {
-        font-size: 2rem; /* encore réduit */
-        font-weight: bold;
-        line-height: 1.1;
-    }
-
-    #confidence {
-        margin-top: 3px;
-        font-size: 0.9rem;
-    }
-
-    .status-box {
-        background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-        color: #333;
-        padding: 10px;
-        border-radius: 12px;
-        text-align: center;
-    }
-
-    #status-text {
-        font-size: 1.1rem;
-    }
-
-    #count-text {
-        font-size: 1rem;
-        margin-top: 5px;
-        font-weight: bold;
-    }
-
-    /* ====== MIDDLE : CAMERA + PHRASE ====== */
-    .main-section {
+    /* Colonne Sidebar (Droite) */
+    .sidebar-section {
+        flex: 3;
         display: flex;
+        flex-direction: column;
         gap: 20px;
     }
 
-    .left-column {
-        flex: 0.9; /* caméra légèrement plus petite */
-        background: #f8f9fa;
-        padding: 12px;
-        border-radius: 12px;
+    .panel {
+        background: var(--surface);
+        border-radius: var(--radius);
+        padding: 24px;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--gray-light);
     }
 
-    #video {
-        width: 95%; /* réduction visuelle */
-        margin: auto;
-        display: block;
-        border-radius: 5px;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    .panel-title {
+        font-family: 'Outfit', sans-serif;
+        font-size: 0.95rem;
+        color: var(--gray);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
     }
 
-    .right-column {
-        flex: 1.1;
-        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        padding: 18px;
-        border-radius: 12px;
-        color: white;
+    /* Détection en direct */
+    .detection-result {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px 0;
+    }
+
+    #predicted-text {
+        font-family: 'Outfit', sans-serif;
+        font-size: 3rem;
+        font-weight: 700;
+        color: var(--dark);
+        line-height: 1;
+        margin-bottom: 12px;
+        text-align: center;
+    }
+
+    .confidence-pill {
+        background: var(--bg);
+        color: var(--gray);
+        font-size: 0.85rem;
+        font-weight: 500;
+        padding: 4px 12px;
+        border-radius: 100px;
+        border: 1px solid var(--gray-light);
+    }
+
+    /* Progress Bar (pour le maintien du signe) */
+    .progress-container {
+        width: 100%;
+        height: 8px;
+        background: var(--gray-light);
+        border-radius: 10px;
+        margin-top: 20px;
+        overflow: hidden;
+    }
+
+    #progress-bar {
+        height: 100%;
+        background: var(--primary);
+        width: 0%;
+        transition: width 0.2s ease;
+    }
+
+    #status-text {
+        font-size: 0.85rem;
+        color: var(--gray);
+        text-align: center;
+        margin-top: 8px;
+        font-weight: 500;
+    }
+
+    /* Phrase construite */
+    .sentence-panel {
+        flex: 1;
         display: flex;
         flex-direction: column;
     }
 
-    .right-column h2 {
-        font-size: 1.2rem;
-        margin-bottom: 10px;
-    }
-
     #sentence-text {
-        background: rgba(255,255,255,0.2);
-        padding: 15px;
-        border-radius: 10px;
-        min-height: 90px;
-        font-size: 1.4rem;
-        margin-bottom: 15px;
+        flex: 1;
+        background: #fafafa;
+        border: 1px solid var(--gray-light);
+        padding: 20px;
+        border-radius: 12px;
+        font-size: 1.3rem;
+        color: var(--dark);
+        line-height: 1.6;
+        overflow-y: auto;
     }
 
     .controls {
-        display: flex;
-        gap: 10px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-top: 16px;
     }
 
-    button {
-        flex: 1;
-        padding: 8px;
+    .controls button {
+        padding: 14px;
+        font-family: 'Outfit', sans-serif;
         font-size: 0.95rem;
         border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        font-weight: bold;
-    }
-
-    #add-btn { background: #28a745; color: white; }
-    #space-btn { background: #17a2b8; color: white; }
-    #clear-btn { background: #dc3545; color: white; }
-
-    /* ====== CONNECTION STATUS ====== */
-    .status {
-        margin-top: 10px;
-        text-align: center;
-        padding: 10px;
         border-radius: 10px;
-        background: #d4edda;
-        color: #155724;
-        font-size: 0.95rem;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.2s ease;
     }
 
-    /* ====== RESPONSIVE ====== */
-    @media (max-width: 1024px) {
-        .main-section {
-            flex-direction: column;
-        }
+    #add-btn { background: var(--primary); color: white; grid-column: span 2; }
+    #add-btn:hover { background: #4338ca; }
+    
+    #space-btn { background: var(--surface); border: 1px solid var(--gray-light); color: var(--dark); }
+    #space-btn:hover { background: var(--bg); border-color: var(--gray); }
+    
+    #clear-btn { background: #fff1f2; color: #e11d48; border: 1px solid #fecdd3; }
+    #clear-btn:hover { background: #ffe4e6; }
 
-        .prediction-section {
-            grid-template-columns: 1fr;
-        }
-
-        #video {
-            width: 100%;
-        }
+    @media (max-width: 992px) {
+        .dashboard-container { flex-direction: column; height: auto; }
+        .video-section { min-height: 400px; }
     }
 </style>
 
 </head>
 
 <body>
-<div class="container">
-    <header>
-    </header>
+<div class="dashboard-container">
+    
+    <!-- Colonne Gauche: Vidéo -->
+    <div class="video-section">
+        <div class="video-header">
+            <div class="video-title">
+                <span style="display:inline-block; width:10px; height:10px; background:var(--primary); border-radius:50%;"></span>
+                Caméra Live
+            </div>
+            <div class="status-badge" id="connection-status">
+                En connexion...
+            </div>
+        </div>
+        <div class="video-wrapper">
+            <video id="videoElement" autoplay playsinline style="display:none;"></video>
+            <canvas id="canvasElement" style="display:none;"></canvas>
+            <!-- L'image traitée s'affiche ici -->
+            <img id="video" src="" alt="Flux vidéo">
+        </div>
+    </div>
 
-    <div class="content">
-
-        <!-- SIGNE + STATUS AU-DESSUS -->
-        <div class="prediction-section">
-            <div class="prediction-box">
-                <h2>Signe détecté</h2>
+    <!-- Colonne Droite: Sidebar -->
+    <div class="sidebar-section">
+        
+        <!-- Panneau de Détection -->
+        <div class="panel">
+            <h2 class="panel-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                Signe détecté
+            </h2>
+            <div class="detection-result">
                 <div id="predicted-text">-</div>
-                <div id="confidence">Confiance: 0%</div>
+                <div class="confidence-pill" id="confidence">Précision: 0%</div>
             </div>
-
-            <div class="status-box">
-                <h2>Statut</h2>
-                <div id="status-text">En attente...</div>
-                <div id="count-text">0/5</div>
-                <div style="margin-top:10px;">Maintenez le signe</div>
+            
+            <div class="progress-container">
+                <div id="progress-bar"></div>
             </div>
+            <div id="status-text">Maintenez le signe pour valider</div>
         </div>
 
-        <!-- CAMERA + PHRASE CÔTE À CÔTE -->
-        <div class="main-section">
-            <div class="left-column">
-                <img id="video" src="{{ url_for('video_feed') }}">
+        <!-- Panneau de Traduction -->
+        <div class="panel sentence-panel">
+            <h2 class="panel-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                Phrase construite
+            </h2>
+            
+            <div id="sentence-text">Commencez à signer...</div>
+
+            <div class="controls">
+                <button id="add-btn">Forcer l'ajout</button>
+                <button id="space-btn">Espace</button>
+                <button id="clear-btn">Effacer</button>
             </div>
-
-            <div class="right-column">
-                <h2>Phrase construite</h2>
-                <div id="sentence-text">Commencez à signer...</div>
-
-                <div class="controls">
-                    <button id="add-btn">Ajouter</button>
-                    <button id="space-btn">␣ Espace</button>
-                    <button id="clear-btn">Effacer</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="status" id="connection-status">
-            Connected to server.
         </div>
 
     </div>
@@ -240,23 +312,69 @@
     let predictionCount = 0;
     const THRESHOLD = 5;
 
+    const videoElem = document.getElementById('videoElement');
+    const canvasElem = document.getElementById('canvasElement');
+    const context = canvasElem.getContext('2d');
+    const imgElem = document.getElementById('video');
+
+    // Démarrer la webcam
+    navigator.mediaDevices.getUserMedia({ video: true })
+        .then(function(stream) {
+            videoElem.srcObject = stream;
+            videoElem.play();
+            document.getElementById('connection-status').textContent = 'Caméra connectée. Serveur connecté.';
+        })
+        .catch(function(err) {
+            console.log("Erreur webcam: " + err);
+            document.getElementById('connection-status').textContent = 'Erreur : Impossible d\'accéder à la caméra.';
+            document.getElementById('connection-status').style.backgroundColor = '#f8d7da';
+            document.getElementById('connection-status').style.color = '#721c24';
+        });
+
+    // Envoyer les images au serveur pour traitement
+    const FPS = 10;
+    setInterval(() => {
+        if (videoElem.readyState === videoElem.HAVE_ENOUGH_DATA) {
+            canvasElem.width = videoElem.videoWidth;
+            canvasElem.height = videoElem.videoHeight;
+            context.drawImage(videoElem, 0, 0, canvasElem.width, canvasElem.height);
+            const dataURL = canvasElem.toDataURL('image/jpeg', 0.5);
+            socket.emit('process_frame', dataURL);
+        }
+    }, 1000 / FPS);
+
+    // Recevoir l'image traitée (avec les points/box dessinés)
+    socket.on('processed_frame', function(data) {
+        imgElem.src = 'data:image/jpeg;base64,' + data;
+    });
+
     socket.on('prediction', function(data) {
         document.getElementById('predicted-text').textContent = data.text;
         document.getElementById('confidence').textContent =
-            `Confiance: ${(data.confidence * 100).toFixed(1)}%`;
+            `Précision: ${(data.confidence * 100).toFixed(1)}%`;
 
         if (data.text === lastPrediction && data.confidence > 0.7) {
             predictionCount++;
-            document.getElementById('count-text').textContent = `${predictionCount}/${THRESHOLD}`;
+            
+            // Update progress bar
+            const progressPercent = Math.min((predictionCount / THRESHOLD) * 100, 100);
+            document.getElementById('progress-bar').style.width = progressPercent + '%';
 
             if (predictionCount >= THRESHOLD) {
                 addToSentence(data.text);
                 predictionCount = 0;
                 lastPrediction = '';
+                document.getElementById('progress-bar').style.width = '0%';
+                
+                // Flash success animation
+                const sentenceBox = document.getElementById('sentence-text');
+                sentenceBox.style.background = '#dcfce7';
+                setTimeout(() => { sentenceBox.style.background = '#fafafa'; }, 300);
             }
         } else {
             lastPrediction = data.text;
             predictionCount = 1;
+            document.getElementById('progress-bar').style.width = (100 / THRESHOLD) + '%';
         }
     });
 

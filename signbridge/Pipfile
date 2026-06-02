@@ -9,6 +9,11 @@ django-crispy-forms = "*"
 crispy-bootstrap5 = "*"
 django = "*"
 requests = "*"
+pillow = "*"
+pose-format = "*"
+spoken-to-signed = "*"
+opencv-python-headless = "*"
+vidgear = "*"
 
 [dev-packages]
 
