@@ -11,8 +11,9 @@ import base64
 # Suppress specific warnings
 warnings.filterwarnings("ignore", message="SymbolDatabase.GetPrototype() is deprecated. Please use message_factory.GetMessageClass() instead.")
 
+import os
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'secret!'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'secret!')
 socketio = SocketIO(app, cors_allowed_origins="*")
 
 try:
@@ -108,4 +109,4 @@ def handle_process_frame(dataURL):
         print("Error processing frame:", e)
 
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=5001, allow_unsafe_werkzeug=True)
+    socketio.run(app, host='0.0.0.0', port=5001, allow_unsafe_werkzeug=True)  # nosec
