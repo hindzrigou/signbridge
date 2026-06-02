@@ -46,13 +46,13 @@ def _pose_to_video(pose: Pose, video_path: str):
             pix2pix_path)
 
     import subprocess
+    import shutil
+    import sys
 
-    try:
-        subprocess.run(["command", "-v", "pose_to_video"], shell=True, check=True)
-    except subprocess.CalledProcessError:
-        raise RuntimeError(
-            "The command 'pose_to_video' does not exist. Please install the `transcription` package using "
-            "`pip install git+https://github.com/sign-language-processing/transcription`")
+    if shutil.which("pose_to_video") is None:
+        print("pose_to_video is not installed. Please install it using:")
+        print("pip install pose-format")
+        sys.exit(1)
 
     pose_path = tempfile.mktemp(suffix=".pose")
     with open(pose_path, "wb") as f:
@@ -64,7 +64,23 @@ def _pose_to_video(pose: Pose, video_path: str):
             "--video", video_path,
             "--upscale"]
     print(" ".join(args))
-    subprocess.run(args, shell=True, check=True)
+    subprocess.run(args, check=True)
+
+
+def pose_to_video(pose_path: str, video_path: str):
+    """
+    Calls the `pose_to_video` command line tool to generate a video from a pose file.
+    """
+    import subprocess
+    args = [
+        "pose_to_video",
+        "--pose",
+        pose_path,
+        "--video",
+        video_path,
+    ]
+    print(" ".join(args))
+    subprocess.run(args, check=True)
 
 
 def _text_input_arguments(parser: argparse.ArgumentParser):

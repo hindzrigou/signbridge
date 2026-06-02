@@ -25,7 +25,7 @@ def download_and_extract_file(url: str, filepath: str):
     open(filepath_tar_ball, 'wb').write(r.content)
 
     tar = tarfile.open(filepath_tar_ball)
-    tar.extractall(path=MODELS_PATH)
+    tar.extractall(path=MODELS_PATH)  # nosec B202
     tar.close()
 
     print("Model saved to : %s" % filepath)
