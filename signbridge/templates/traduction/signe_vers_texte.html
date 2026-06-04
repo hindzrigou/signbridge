@@ -8,12 +8,19 @@
     <div class="row justify-content-center">
         <div class="col-12" style="height: 800px;">
             <iframe 
-                src="{{ flask_url }}" 
+                id="flask-iframe"
                 style="width: 100%; height: 100%; border: none; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);"
                 title="Détection de Langue des Signes"
                 allow="camera"
             ></iframe>
         </div>
+        
+        <script>
+            // Construit dynamiquement l'URL Flask avec la même IP publique que la page actuelle
+            const flaskPort = 5001;
+            const currentHostname = window.location.hostname;
+            document.getElementById('flask-iframe').src = `http://${currentHostname}:${flaskPort}`;
+        </script>
     </div>
 </div>
 {% endblock %}
