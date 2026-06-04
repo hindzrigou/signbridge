@@ -12,7 +12,10 @@ import base64
 warnings.filterwarnings("ignore", message="SymbolDatabase.GetPrototype() is deprecated. Please use message_factory.GetMessageClass() instead.")
 
 import os
+from prometheus_flask_exporter import PrometheusMetrics
+
 app = Flask(__name__)
+metrics = PrometheusMetrics(app)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'secret!')
 socketio = SocketIO(app, cors_allowed_origins="*")
 

@@ -33,6 +33,7 @@ urlpatterns = [
     path('tutoriel/', include('tutoriel.urls')),
     path('avatar/', include('avatar_signeur.urls')),
     path('media/', include('gestion_media.urls')),
+    path('prometheus/', include('django_prometheus.urls')),
 ]
 
 # URLs pour les fichiers média en développement
