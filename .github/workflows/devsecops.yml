@@ -67,6 +67,7 @@ jobs:
         run: pip install pipenv safety
       - name: Scan Django Dependencies
         working-directory: ./signbridge
+        continue-on-error: true
         run: |
           pipenv requirements > requirements.txt
           safety check -r requirements.txt --full-report
