@@ -1,0 +1,65 @@
+{
+  "family": "signbridge-task",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "2048",
+  "memory": "4096",
+  "executionRoleArn": "arn:aws:iam::318492844189:role/ecsTaskExecutionRole",
+  "containerDefinitions": [
+    {
+      "name": "signbridge-django",
+      "image": "318492844189.dkr.ecr.us-east-1.amazonaws.com/signbridge-django:latest",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 8000,
+          "hostPort": 8000,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        { "name": "DB_HOST", "value": "signbridge-db-v2.c2hiugwoa2rr.us-east-1.rds.amazonaws.com" },
+        { "name": "DB_USER", "value": "admin" },
+        { "name": "DB_NAME", "value": "lsf_database" }
+      ],
+      "secrets": [
+        { "name": "DB_PASSWORD", "valueFrom": "arn:aws:ssm:us-east-1:318492844189:parameter/signbridge/db_password" },
+        { "name": "SECRET_KEY", "valueFrom": "arn:aws:ssm:us-east-1:318492844189:parameter/signbridge/django_secret_key" }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+            "awslogs-create-group": "true",
+            "awslogs-group": "/ecs/signbridge-django",
+            "awslogs-region": "us-east-1",
+            "awslogs-stream-prefix": "ecs"
+        }
+      }
+    },
+    {
+      "name": "signbridge-flask",
+      "image": "318492844189.dkr.ecr.us-east-1.amazonaws.com/signbridge-flask:latest",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 5000,
+          "hostPort": 5000,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [],
+      "secrets": [
+        { "name": "SECRET_KEY", "valueFrom": "arn:aws:ssm:us-east-1:318492844189:parameter/signbridge/flask_secret_key" }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+            "awslogs-create-group": "true",
+            "awslogs-group": "/ecs/signbridge-flask",
+            "awslogs-region": "us-east-1",
+            "awslogs-stream-prefix": "ecs"
+        }
+      }
+    }
+  ]
+}

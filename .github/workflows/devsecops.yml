@@ -7,6 +7,31 @@ on:
     branches: [ "main", "master" ]
 
 jobs:
+  secret-scanning:
+    name: Secret Scanning (GitLeaks)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  iac-security-scan:
+    name: Infrastructure Security Scan (Checkov)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      - name: Run Checkov
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: .
+          framework: dockerfile,json
+
   security-code-scan:
     name: Code Security Scan (SAST)
     runs-on: ubuntu-latest
@@ -27,6 +52,24 @@ jobs:
 
       - name: Run Bandit Scan on Microservice
         run: bandit -r ./microservice-sign2text -lll
+
+  sca-dependency-scan:
+    name: Dependency Vulnerability Scan (SCA)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Install Pipenv & Safety
+        run: pip install pipenv safety
+      - name: Scan Django Dependencies
+        working-directory: ./signbridge
+        run: |
+          pipenv requirements > requirements.txt
+          safety check -r requirements.txt --full-report
 
   container-security-scan:
     name: Docker Image Security Scan
@@ -60,3 +103,67 @@ jobs:
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
+
+  deploy-to-aws:
+    name: Deploy to Amazon ECS
+    runs-on: ubuntu-latest
+    needs: [secret-scanning, iac-security-scan, security-code-scan, sca-dependency-scan, container-security-scan]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag, and push Django image to Amazon ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: signbridge-django
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest ./signbridge
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+      - name: Build, tag, and push Flask image to Amazon ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: signbridge-flask
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest ./microservice-sign2text
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: task-def-django
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: aws-task-def.json
+          container-name: signbridge-django
+          image: ${{ steps.login-ecr.outputs.registry }}/signbridge-django:${{ github.sha }}
+
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: task-def-flask
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def-django.outputs.task-definition }}
+          container-name: signbridge-flask
+          image: ${{ steps.login-ecr.outputs.registry }}/signbridge-flask:${{ github.sha }}
+
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def-flask.outputs.task-definition }}
+          service: signbridge-service
+          cluster: signbridge-cluster
+          wait-for-service-stability: true
